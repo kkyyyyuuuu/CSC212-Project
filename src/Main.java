@@ -1,94 +1,253 @@
-import java.io.IOException;
-
 public class Main {
-    public static void main(String[] args) {
+    
+    private static final int MAX_LIST_SIZE = 1000;
+
+    public static Customer searchCustomerByID(ArrayList<Customer> customers, int id) {
+        if (customers.empty()) return null;
         
-        ECommerceSystem system = new ECommerceSystem();
-        System.out.println("--- 1. System Initialized ---");
-
-        System.out.println("Reading data from CSV files...");
-        system.readDataFromCSV();
-        System.out.println("Data loaded successfully!");
-        System.out.println("\n----------------------------------------");
-
-
-        // --- اختبار المتطلبات الوظيفية ---
-
-        // متطلب: اقتراح "أفضل 3 منتجات" بمتوسط التقييم (O(R + P^2))
-        System.out.println("--- 2. Top 3 Products by Average Rating ---");
-        CustomDynamicArray<Product> topProducts = system.getTop3ProductsByRating();
-        if (topProducts.getSize() > 0) {
-            for (int i = 0; i < topProducts.getSize(); i++) {
-                Product p = topProducts.get(i);
-                System.out.printf("%d. %s (ID: %d) - Avg Rating: %.2f\n", 
-                                  (i + 1), p.getName(), p.getProductId(), p.calculateAverageRating());
+        customers.findFirst();
+        while (true) {
+            if (customers.retrieve().getCustomerId() == id) {
+                return customers.retrieve();
             }
-        } else {
-            System.out.println("No products found.");
+            if (customers.last()) break;
+            customers.findNext();
         }
-        System.out.println("Complexity Analysis: O(R + P^2) due to custom Selection Sort.");
-        System.out.println("\n----------------------------------------");
-
-
-        // متطلب: جميع الطلبات بين تاريخين (O(O))
-        String startDate = "2025-02-15";
-        String endDate = "2025-02-28";
-        System.out.println("--- 3. Orders Between Dates: " + startDate + " and " + endDate + " ---");
-        CustomDynamicArray<Order> filteredOrders = system.getOrdersBetweenDates(startDate, endDate);
-        System.out.println("Found " + filteredOrders.getSize() + " orders in this range.");
-        
-        for (int i = 0; i < 3 && i < filteredOrders.getSize(); i++) {
-            Order o = filteredOrders.get(i);
-            System.out.println("Order ID: " + o.getOrderId() + ", Customer ID: " + o.getCustomerReference() + ", Date: " + o.getOrderDate());
-        }
-        System.out.println("Complexity Analysis: O(O) due to linear scan of all orders.");
-        System.out.println("\n----------------------------------------");
-
-
-        // متطلب: استخلاص مراجعات عميل محدد (O(C))
-        int testCustomerId = 201; 
-        System.out.println("--- 4. Reviews for Customer ID: " + testCustomerId + " ---");
-        CustomDynamicArray<Review> customerReviews = system.getReviewsForCustomer(testCustomerId);
-        System.out.println("Customer " + testCustomerId + " wrote " + customerReviews.getSize() + " reviews.");
-        
-        for (int i = 0; i < 2 && i < customerReviews.getSize(); i++) {
-            Review r = customerReviews.get(i);
-            System.out.println("  - Review ID: " + r.getReviewId() + ", Product ID: " + r.getProductId() + ", Rating: " + r.getRatingScore());
-        }
-        System.out.println("Complexity Analysis: O(C) because reviews are pre-linked to the Customer object.");
-        System.out.println("\n----------------------------------------");
-
-
-        // متطلب: المنتجات المشتركة بمتوسط تقييم > 4 لعميلين (O(C + p1*p2 + ...))
-        int custIdA = 201; 
-        int custIdB = 205; 
-        System.out.println("--- 5. Common High-Rated Products (C" + custIdA + " & C" + custIdB + ") ---");
-        CustomDynamicArray<Product> commonHighRated = system.getCommonHighRatedProducts(custIdA, custIdB);
-        
-        if (commonHighRated.getSize() > 0) {
-            for (int i = 0; i < commonHighRated.getSize(); i++) {
-                Product p = commonHighRated.get(i);
-                System.out.printf(" - %s (ID: %d), Avg Rating: %.2f\n", 
-                                  p.getName(), p.getProductId(), p.calculateAverageRating());
-            }
-        } else {
-             System.out.println("No common products found with average rating > 4.0.");
-        }
-        System.out.println("Complexity Analysis: O(C + p1 * p2 + p_common * P) due to linear intersection search.");
-        System.out.println("\n----------------------------------------");
-
-
-        // متطلب: تتبع المنتجات التي نفذت من المخزون (مثال)
-        System.out.println("--- 6. Tracking Out-of-Stock Products (Example) ---");
-        Product p145 = system.searchProductByID(145);
-        if(p145 != null) {
-             System.out.println("Product 145 Stock: " + p145.getStock());
-             if (p145.isOutOfStock()) {
-                 System.out.println("Product 145 is currently Out-of-Stock. O(1).");
-             } else {
-                 System.out.println("Product 145 is In-Stock.");
-             }
-        }
-        System.out.println("All requirements have been demonstrated and analyzed successfully.");
+        return null;
     }
-}
+
+    public static Product searchProductByID(ArrayList<Product> products, int id) {
+        if (products.empty()) return null;
+        
+        products.findFirst();
+        while (true) {
+            if (products.retrieve().getProductId() == id) {
+                return products.retrieve();
+            }
+            if (products.last()) break;
+            products.findNext();
+        }
+        return null;
+    }
+
+    public static void readDataFromCSV(ArrayList<Product> products, ArrayList<Customer> customers, ArrayList<Order> orders) {
+        
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/prodcuts.csv"))) {
+            br.readLine(); 
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(","); 
+                products.insert(new Product(
+                    java.lang.Integer.parseInt(values[0]),
+                    values[1],
+                    java.lang.Double.parseDouble(values[2]),
+                    java.lang.Integer.parseInt(values[3])
+                ));
+            }
+        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading products: " + e.getMessage()); }
+
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/customers.csv"))) {
+            br.readLine(); 
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                customers.insert(new Customer(
+                    java.lang.Integer.parseInt(values[0]),
+                    values[1],
+                    values[2]
+                ));
+            }
+        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading customers: " + e.getMessage()); }
+
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/reviews.csv"))) {
+            br.readLine(); 
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                Review newReview = new Review(
+                    java.lang.Integer.parseInt(values[0]),
+                    java.lang.Integer.parseInt(values[1]),
+                    java.lang.Integer.parseInt(values[2]),
+                    java.lang.Integer.parseInt(values[3]),
+                    values[4].replace("\"", "")
+                );
+                
+                Product product = searchProductByID(products, newReview.getProductId());
+                Customer customer = searchCustomerByID(customers, newReview.getCustomerId());
+                
+                if (product != null) { product.addReview(newReview); }
+                if (customer != null) { customer.addReview(newReview); }
+            }
+        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading reviews: " + e.getMessage()); }
+        
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/orders.csv"))) {
+            br.readLine(); 
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(","); 
+                
+                String[] pIdsStr = values[2].replace("\"", "").split(";");
+                ArrayList<Integer> productIds = new ArrayList<>(pIdsStr.length);
+                for (String idStr : pIdsStr) {
+                    productIds.insert(java.lang.Integer.parseInt(idStr));
+                }
+
+                Order newOrder = new Order(
+                    java.lang.Integer.parseInt(values[0]),
+                    java.lang.Integer.parseInt(values[1]),
+                    productIds,
+                    java.lang.Double.parseDouble(values[3]),
+                    values[4],
+                    values[5]
+                );
+                
+                orders.insert(newOrder);
+
+                Customer customer = searchCustomerByID(customers, newOrder.getCustomerReference());
+                if (customer != null) { customer.placeNewOrder(newOrder); }
+            }
+        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading orders: " + e.getMessage()); }
+    }
+    
+    private static class ProductRating {
+        Product product;
+        double averageRating;
+        
+        public ProductRating(Product p, double avg) {
+            this.product = p;
+            this.averageRating = avg;
+        }
+        public Product getProduct() { return product; }
+        public double getAverageRating() { return averageRating; }
+    }
+    
+    public static ArrayList<Product> getTop3ProductsByRating(ArrayList<Product> products) {
+        if (products.empty()) return new ArrayList<>(3);
+        
+        ArrayList<ProductRating> ratings = new ArrayList<>(products.size);
+        
+        products.findFirst();
+        while (true) {
+            Product p = products.retrieve();
+            double avg = p.calculateAverageRating();
+            ratings.insert(new ProductRating(p, avg));
+            if (products.last()) break;
+            products.findNext();
+        }
+        
+        ArrayList<Product> top3 = new ArrayList<>(3);
+        
+        ratings.findFirst();
+        for (int i = 0; i < 3 && i < ratings.size; i++) {
+            top3.insert(ratings.retrieve().getProduct());
+            if (ratings.last()) break;
+            ratings.findNext();
+        }
+        
+        return top3;
+    }
+    
+    public static ArrayList<Order> getOrdersBetweenDates(ArrayList<Order> orders, String startDate, String endDate) {
+        ArrayList<Order> result = new ArrayList<>(orders.size);
+        
+        if (orders.empty()) return result;
+        
+        orders.findFirst();
+        while (true) {
+            Order order = orders.retrieve();
+            String orderDate = order.getOrderDate();
+            
+            if (orderDate.compareTo(startDate) >= 0 && orderDate.compareTo(endDate) <= 0) {
+                result.insert(order);
+            }
+            if (orders.last()) break;
+            orders.findNext();
+        }
+        return result;
+    }
+    
+    private static boolean containsProductId(ArrayList<Integer> pIds, int id) {
+        if (pIds.empty()) return false;
+        pIds.findFirst();
+        while (true) {
+            if (pIds.retrieve() == id) return true;
+            if (pIds.last()) break;
+            pIds.findNext();
+        }
+        return false;
+    }
+
+    private static ArrayList<Integer> extractUniqueProductIds(DoubleLinkedList<Review> reviews) {
+        ArrayList<Integer> uniqueIds = new ArrayList<>(reviews.getSize());
+        
+        if (reviews.empty()) return uniqueIds;
+        
+        reviews.findFirst();
+        while (true) {
+            int pid = reviews.retrieve().getProductId();
+            
+            boolean found = false;
+            if (!uniqueIds.empty()) {
+                uniqueIds.findFirst();
+                while (true) {
+                    if (uniqueIds.retrieve() == pid) {
+                        found = true;
+                        break;
+                    }
+                    if (uniqueIds.last()) break;
+                    uniqueIds.findNext();
+                }
+            }
+            
+            if (!found) {
+                uniqueIds.insert(pid);
+            }
+
+            if (reviews.last()) break;
+            reviews.findNext();
+        }
+        return uniqueIds;
+    }
+    
+    public static ArrayList<Product> getCommonHighRatedProducts(ArrayList<Product> products, ArrayList<Customer> customers, int customerId1, int customerId2) {
+        ArrayList<Product> commonProducts = new ArrayList<>(MAX_LIST_SIZE);
+        
+        Customer c1 = searchCustomerByID(customers, customerId1);
+        Customer c2 = searchCustomerByID(customers, customerId2);
+        if (c1 == null || c2 == null) return commonProducts;
+
+        ArrayList<Integer> pIds1 = extractUniqueProductIds(c1.getReviewsByCustomer());
+        ArrayList<Integer> pIds2 = extractUniqueProductIds(c2.getReviewsByCustomer());
+
+        if (pIds1.empty()) return commonProducts;
+        
+        pIds1.findFirst();
+        while (true) {
+            int pid1 = pIds1.retrieve();
+            
+            boolean isCommon = false;
+            if (!pIds2.empty()) {
+                pIds2.findFirst();
+                while(true) {
+                    if(pIds2.retrieve() == pid1) {
+                        isCommon = true;
+                        break;
+                    }
+                    if (pIds2.last()) break;
+                    pIds2.findNext();
+                }
+            }
+            
+            if (isCommon) { 
+                Product commonProduct = searchProductByID(products, pid1);
+                
+                if (commonProduct != null) {
+                    if (commonProduct.calculateAverageRating() > 4.0) {
+                        commonProducts.insert(commonProduct);
+                    }
+                }
+            }
+            
+            if (pIds1.last()) break;
+            pIds1.findNext();
+        }
