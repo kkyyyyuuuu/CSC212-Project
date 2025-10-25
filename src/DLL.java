@@ -1,4 +1,4 @@
-public class Node<T> {
+class Node<T> {
 	public T data;
 	public Node<T> next;
 	public Node<T> previous;
@@ -31,7 +31,8 @@ public class DoubleLinkedList<T> {
 	
 	public boolean last() {
 		return current.next == null;
-	}public boolean first() {
+	} 
+	public boolean first() {
 		return current.previous == null;
 	}
 public boolean full() {
@@ -52,7 +53,7 @@ public boolean full() {
 	public void update(T val) {
 		current.data = val;
 	}
-public void insert(T val) {
+	public void insert(T val) {
 		Node<T> tmp = new Node<T>(val);
 		if(empty()) {
 			current = head = tmp;
