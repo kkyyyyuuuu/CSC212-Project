@@ -5,45 +5,66 @@ public class Product {
     private double price;
     private int stock;
     
-    private ArrayList<Review> reviews;
+    private List<Review> reviews;
 
     public Product(int productId, String name, double price, int stock) {
         this.productId = productId;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.reviews = new ArrayList<>(100);
+        this.reviews = new LinkedList<Review>();
     }
 
     public void addReview(Review review) {
-        if (review != null) {
-            this.reviews.insert(review);
+        if(review == null) 
+        	return;
+        if(reviews.empty()) {
+            reviews.insert(review);
+        } else {
+            reviews.findFirst();
+            while (!reviews.last()) {
+                reviews.findNext();
+            }
+            reviews.insert(review);  // it will set "after" the last node and the current will move to the new
         }
     }
 
     public double calculateAverageRating() {
-        if (reviews.empty()) {
-            return 0.0;
-        }
-
-        double totalRating = 0.0;
-        
+        if (reviews.empty()) 
+        	return 0.0;
+        double total = 0.0;
+        int count = 0;
         reviews.findFirst();
-        while (true) {
-            totalRating += reviews.retrieve().getRatingScore();
-            if (reviews.last()) break;
+        while (!reviews.last()) {
+            Review r = reviews.retrieve();
+            if (r!=null) {
+                total +=r.getRatingScore();
+                count++;
+            }
             reviews.findNext();
         }
-
-        return totalRating / reviews.size;
+            Review r = reviews.retrieve(); // for the last or the indivdiually node 
+        if (r != null) {
+            total +=r.getRatingScore();
+            count++;
+        }
+        if(count==0) //just for safety, maybe the user enter a null rate somehow
+        	return 0.0;
+        else 
+        	return total/count;      
     }
 
+
+
     public boolean isOutOfStock() {
-        return this.stock <= 0;
+        return stock <= 0;
     }
     
     public void updateStock(int quantityChange) {
-        this.stock += quantityChange; 
+        stock += quantityChange; 
+        if (stock <0) {
+        	stock=0;
+        }
     }
     
     public void setPrice(double price) {
@@ -51,7 +72,12 @@ public class Product {
     }
     
     public void setName(String name) {
-        this.name = name;
+        if(name == null) {
+        	this.name ="";
+        }
+        else {
+        	this.name = name;
+        }
     }
 
     public int getProductId() {
@@ -70,7 +96,8 @@ public class Product {
         return stock;
     }
     
-    public ArrayList<Review> getReviews() {
-        return reviews;
+    public List<Review> getReviews() { 
+    	return reviews; 
     }
+     
 }
