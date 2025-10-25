@@ -59,4 +59,36 @@ public class Main {
         System.out.println("\n----------------------------------------");
 
 
-        // متطلب: المنتجات المشتركة بمتوسط تقييم > 4 لعميلين (O(C + p
+        // متطلب: المنتجات المشتركة بمتوسط تقييم > 4 لعميلين (O(C + p1*p2 + ...))
+        int custIdA = 201; 
+        int custIdB = 205; 
+        System.out.println("--- 5. Common High-Rated Products (C" + custIdA + " & C" + custIdB + ") ---");
+        CustomDynamicArray<Product> commonHighRated = system.getCommonHighRatedProducts(custIdA, custIdB);
+        
+        if (commonHighRated.getSize() > 0) {
+            for (int i = 0; i < commonHighRated.getSize(); i++) {
+                Product p = commonHighRated.get(i);
+                System.out.printf(" - %s (ID: %d), Avg Rating: %.2f\n", 
+                                  p.getName(), p.getProductId(), p.calculateAverageRating());
+            }
+        } else {
+             System.out.println("No common products found with average rating > 4.0.");
+        }
+        System.out.println("Complexity Analysis: O(C + p1 * p2 + p_common * P) due to linear intersection search.");
+        System.out.println("\n----------------------------------------");
+
+
+        // متطلب: تتبع المنتجات التي نفذت من المخزون (مثال)
+        System.out.println("--- 6. Tracking Out-of-Stock Products (Example) ---");
+        Product p145 = system.searchProductByID(145);
+        if(p145 != null) {
+             System.out.println("Product 145 Stock: " + p145.getStock());
+             if (p145.isOutOfStock()) {
+                 System.out.println("Product 145 is currently Out-of-Stock. O(1).");
+             } else {
+                 System.out.println("Product 145 is In-Stock.");
+             }
+        }
+        System.out.println("All requirements have been demonstrated and analyzed successfully.");
+    }
+}
