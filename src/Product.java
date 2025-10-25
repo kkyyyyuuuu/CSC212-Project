@@ -5,52 +5,50 @@ public class Product {
     private double price;
     private int stock;
     
-    // قائمة المراجعات تستخدم الهيكل المخصص
-    private CustomDynamicArray<Review> reviews;
+
+    private DoubleLinkedList<Review> reviews;
 
     public Product(int productId, String name, double price, int stock) {
         this.productId = productId;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.reviews = new CustomDynamicArray<>();
+        this.reviews = new DoubleLinkedList<>();
     }
 
-    // --- العمليات المطلوبة ---
-
-    // O: Add/remove/update products
     public void addReview(Review review) {
         if (review != null) {
-            this.reviews.add(review);
+            this.reviews.insert(review);
         }
     }
 
-    // O: Get an average rating for product - O(R_i)
     public double calculateAverageRating() {
-        if (reviews.getSize() == 0) {
+        if (reviews.empty()) {
             return 0.0;
         }
 
         double totalRating = 0.0;
+        int count = 0;
         
-        for (int i = 0; i < reviews.getSize(); i++) {
-            totalRating += reviews.get(i).getRatingScore(); 
+        reviews.findFirst();
+        while (reviews.current != null) { 
+            totalRating += reviews.retrieve().getRatingScore();
+            count++;
+            if (reviews.last()) break; 
+            reviews.findNext();
         }
 
-        return totalRating / reviews.getSize();
+        return totalRating / count;
     }
 
-    // O: Track out-of-stock products - O(1)
     public boolean isOutOfStock() {
         return this.stock <= 0;
     }
     
-    // لتحديث المخزون (Update stock)
     public void updateStock(int quantityChange) {
         this.stock += quantityChange; 
     }
     
-    // لتعديل السعر والاسم (جزء من O: Add/remove/update products)
     public void setPrice(double price) {
         this.price = price;
     }
@@ -58,8 +56,6 @@ public class Product {
     public void setName(String name) {
         this.name = name;
     }
-
-    // --- Getters ---
 
     public int getProductId() {
         return productId;
@@ -77,7 +73,7 @@ public class Product {
         return stock;
     }
     
-    public CustomDynamicArray<Review> getReviews() {
+    public DoubleLinkedList<Review> getReviews() {
         return reviews;
     }
 }
