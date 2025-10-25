@@ -5,15 +5,14 @@ public class Product {
     private double price;
     private int stock;
     
-
-    private DoubleLinkedList<Review> reviews;
+    private ArrayList<Review> reviews;
 
     public Product(int productId, String name, double price, int stock) {
         this.productId = productId;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.reviews = new DoubleLinkedList<>();
+        this.reviews = new ArrayList<>(100);
     }
 
     public void addReview(Review review) {
@@ -28,17 +27,15 @@ public class Product {
         }
 
         double totalRating = 0.0;
-        int count = 0;
         
         reviews.findFirst();
-        while (reviews.current != null) { 
+        while (true) {
             totalRating += reviews.retrieve().getRatingScore();
-            count++;
-            if (reviews.last()) break; 
+            if (reviews.last()) break;
             reviews.findNext();
         }
 
-        return totalRating / count;
+        return totalRating / reviews.size;
     }
 
     public boolean isOutOfStock() {
@@ -73,7 +70,7 @@ public class Product {
         return stock;
     }
     
-    public DoubleLinkedList<Review> getReviews() {
+    public ArrayList<Review> getReviews() {
         return reviews;
     }
 }
