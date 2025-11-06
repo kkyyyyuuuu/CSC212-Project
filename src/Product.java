@@ -1,3 +1,5 @@
+package Test;
+
 public class Product {
 
     private int productId;
@@ -9,6 +11,7 @@ public class Product {
 
     public Product(int productId, String name, double price, int stock) {
         this.productId = productId;
+ 
         this.name = name;
         this.price = price;
         this.stock = stock;
@@ -20,14 +23,16 @@ public class Product {
         	return;
         if(reviews.empty()) {
             reviews.insert(review);
-        } else {
+        } 
+        else {
             reviews.findFirst();
             while (!reviews.last()) {
                 reviews.findNext();
             }
-            reviews.insert(review);  // it will set "after" the last node and the current will move to the new
+            reviews.insert(review); 
         }
     }
+    
 
     public double calculateAverageRating() {
         if (reviews.empty()) 
@@ -43,12 +48,12 @@ public class Product {
             }
             reviews.findNext();
         }
-            Review r = reviews.retrieve(); // for the last or the indivdiually node 
+            Review r = reviews.retrieve(); 
         if (r != null) {
             total +=r.getRatingScore();
             count++;
         }
-        if(count==0) //just for safety, maybe the user enter a null rate somehow
+        if(count==0)
         	return 0.0;
         else 
         	return total/count;      
@@ -57,7 +62,7 @@ public class Product {
 
 
     public boolean isOutOfStock() {
-        return stock <= 0;
+        return stock <= 0;      
     }
     
     public void updateStock(int quantityChange) {
@@ -65,6 +70,29 @@ public class Product {
         if (stock <0) {
         	stock=0;
         }
+    }
+    
+    public boolean hasReviewFrom(int customerId) {
+        if (reviews.empty()) 
+        	return false;
+        Review cur;
+        reviews.findFirst();
+        while (!reviews.last()) {
+            cur = reviews.retrieve();
+            if (cur != null) {
+                if (cur.getCustomerId() == customerId) {
+                    return true;
+                }
+            }
+            reviews.findNext();
+        }
+        cur = reviews.retrieve(); 
+        if (cur != null) {
+            if (cur.getCustomerId() == customerId) {
+                return true;
+            }
+        }
+        return false;
     }
     
     public void setPrice(double price) {
@@ -99,5 +127,10 @@ public class Product {
     public List<Review> getReviews() { 
     	return reviews; 
     }
+	@Override
+	public String toString() {
+		return "Product [productId=" + productId + ", name=" + name + ", price=" + price + ", stock=" + stock
+				+ ", reviews=" + reviews + "]";
+	}
      
 }
