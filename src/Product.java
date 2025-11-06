@@ -1,5 +1,3 @@
-package Test;
-
 public class Product {
 
     private int productId;
