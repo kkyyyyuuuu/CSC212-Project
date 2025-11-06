@@ -1,5 +1,9 @@
+package Test;
+
 public class ProductOperations {
-    private static <T> void append(List<T> l, T e) {
+	public static List<Product> allTheProducts = new LinkedList<Product>();
+
+    private static <T> void append(List<T> l, T e) {  
         if (l.full())
         	return;
         if (l.empty())
@@ -7,78 +11,77 @@ public class ProductOperations {
         	l.insert(e); 
         	return; }
         l.findFirst();
-        while (!l.last()) l.findNext();
+        while (!l.last())
+        	l.findNext();
         l.insert(e);
     }  
-    public static void addProduct(List<Product> products, Product p) {
+    public static void addProduct(Product p) {
         if (p == null) 
         	return;
-        append(products, p);
+        append(allTheProducts, p);
     }
-    public static boolean removeById(List<Product> products, int id) {
-        if (products.empty()) 
+    public static boolean removeById(int id) {
+        if (allTheProducts.empty()) 
         	return false;
-        products.findFirst();
+        allTheProducts.findFirst();
         Product cur;
-        while (!products.last()) {
-            cur = products.retrieve();
+        while (!allTheProducts.last()) {
+            cur = allTheProducts.retrieve();
             if (cur != null) {       
             	if(cur.getProductId() == id) {
-            		products.remove(); 
+            		allTheProducts.remove(); 
             		return true;
             	}
             }
-            products.findNext();
+            allTheProducts.findNext();
         }
-        cur = products.retrieve();
+        cur = allTheProducts.retrieve();
         if (cur != null) {              
         	if(cur.getProductId() == id)
-        		products.remove(); 
+        		allTheProducts.remove(); 
         		return true;
         	}
         return false;
     }
     
-    public static boolean updateName(List<Product> products, int id, String newName) {
-        Product p = searchById(products, id);
-        if (p == null)
-        	return false;
+    public boolean updateName(int id, String newName) {
+        Product p = searchById(id);
+        if (p == null) return false;
         p.setName(newName);
-        products.update(p);
+        allTheProducts.update(p);
         return true;
     }
-    public static boolean updatePrice(List<Product> products, int id, double newPrice) {
-        Product p = searchById(products, id);
-        if (p == null) 
-        	return false;
+    public boolean updatePrice(int id, double newPrice) {
+        Product p = searchById(id);
+        if (p == null) return false;
         p.setPrice(newPrice);
-        products.update(p);
+        allTheProducts.update(p);
         return true;
     }
-    public static boolean updateStock(List<Product> products, int id, int newStock) {
-        Product p = searchById(products, id);
+    public boolean updateStock(int id, int newStock) {
+        Product p = searchById(id);
         if (p == null) 
         	return false;
-        int delta = newStock - p.getStock();
-        p.updateStock(delta);
-        products.update(p);
+        int tmp = newStock - p.getStock();
+        p.updateStock(tmp);
+        allTheProducts.update(p);
         return true;
     }   
-    public static Product searchById(List<Product> products, int id) {
-        if (products.empty())
+    public static Product searchById(int id) {
+        if (allTheProducts.empty())
         	return null;
         Product cur;
-        products.findFirst();
-        while (!products.last()) {
-             cur = products.retrieve();
+        allTheProducts.findFirst();
+        while (!allTheProducts.last()) {
+             cur = allTheProducts.retrieve();
             if (cur != null) {
             	if(cur.getProductId() == id) {
             		return cur;
             	}
             }
-            products.findNext();
+            allTheProducts.findNext();
         }
-        cur = products.retrieve();
+        cur = allTheProducts.retrieve();
         if (cur != null) {
             if (cur.getProductId() == id) {
                 return cur;
@@ -86,57 +89,197 @@ public class ProductOperations {
         }
         return null;
     }
-    public static LinkedList<Product> searchByName(List<Product> products, String name) {
+    public static LinkedList<Product> searchByName(String name) {
         LinkedList<Product> res = new LinkedList<Product>();
-        if (products.empty()) 
+        if (allTheProducts.empty() | (name == null) | (name.length()==0))
         	return res;
-        String q;
-        if (name == null) 
-        	q = "";
-        else 
-        	q = name;
+        String nNInLowerCase = name.toLowerCase();
         Product cur;
-        products.findFirst();     
-        while (!products.last()) {
-            cur = products.retrieve();
+        allTheProducts.findFirst();     
+        while (!allTheProducts.last()) {
+            cur = allTheProducts.retrieve();
             if (cur != null) {
-            	if(namesEqual(cur.getName(), q)) {           
-                append(res, cur);
+            	String namegetName = cur.getName();
+            	if(namegetName != null) {
+            		String namegetNameInLowerCase= namegetName.toLowerCase();
+            		if(namegetNameInLowerCase.contains(nNInLowerCase)) {
+            			append(res, cur);
+            		}            	                        	
+            	}
             }
-            }
-            products.findNext();
+            allTheProducts.findNext();
         }       
-        cur = products.retrieve();
-        if (cur != null && namesEqual(cur.getName(), q)) {
-            append(res, cur);
+        cur = allTheProducts.retrieve();
+        if (cur != null) {
+        	String namegetName = cur.getName();
+        	if(namegetName != null) {
+        		String namegetNameInLowerCase= namegetName.toLowerCase();
+        		if(namegetNameInLowerCase.contains(nNInLowerCase)) {
+        			append(res, cur);
+        		}
+        	}
         }
         return res;
     }
-
-    private static boolean namesEqual(String a, String b) {
-        if (a == null && b == null) return true;
-        if (a == null || b == null) return false;
-        return a.equals(b);
-    }
-    public static LinkedList<Product> outOfStock(List<Product> products) {
+    public static LinkedList<Product> outOfStock() {
         LinkedList<Product> res = new LinkedList<Product>();
-        if (products.empty()) 
+        if (allTheProducts.empty()) 
         	return res;
         Product cur;
-        products.findFirst();
-        while (!products.last()) {
-             cur = products.retrieve();
+        allTheProducts.findFirst();
+        while (!allTheProducts.last()) {
+             cur = allTheProducts.retrieve();
             if (cur != null) {
             	if(cur.isOutOfStock()) 
             		append(res, cur);
             }
-            products.findNext();
+            allTheProducts.findNext();
         }
-         cur = products.retrieve();
+         cur = allTheProducts.retrieve();
          if (cur != null) {
          	if(cur.isOutOfStock()) 
          		append(res, cur);
          }
         return res;
     }
+    
+    
+    public LinkedList<Product> top3ByAverage() {
+        LinkedList<Product> res = new LinkedList<Product>();
+        if (allTheProducts.empty()) {
+            return res;
+        }   
+        int size = 0;
+        allTheProducts.findFirst();     
+        while (!allTheProducts.last()) { 
+            if (allTheProducts.retrieve() != null) {
+                size++;
+            }
+            allTheProducts.findNext(); 
+        }
+        if (allTheProducts.retrieve() != null) { 
+            size++;
+        }     
+        if (size == 0) return res;
+        Product[] productArray = new Product[size];
+        int i_copy = 0; 
+        allTheProducts.findFirst();        
+        while (!allTheProducts.last()) { 
+            Product p = allTheProducts.retrieve(); 
+            if (p != null) {
+                productArray[i_copy] = p;
+                i_copy++;
+            }
+            allTheProducts.findNext();
+        }
+        Product p_last = allTheProducts.retrieve();
+        if (p_last != null) {
+            productArray[i_copy] = p_last;
+        }       
+        int n = productArray.length;       
+        for (int i= 0; i<n-1; i++) {                      
+            int maxIndex = i;
+            for (int j= i+1; j<n; j++) {
+            	double ratingJ = -1.0;
+            	if (productArray[j] != null) {
+            	    ratingJ = productArray[j].calculateAverageRating();
+            	}
+
+            	double ratingMax = -1.0;
+            	if (productArray[maxIndex] != null) {
+            	    ratingMax = productArray[maxIndex].calculateAverageRating();
+            	}
+                if (ratingJ > ratingMax) {
+                    maxIndex = j;
+                }
+            }  
+            Product temp = productArray[i];
+            productArray[i] = productArray[maxIndex];
+            productArray[maxIndex] = temp;
+        }             
+        if (productArray[0] != null) {
+            append(res, productArray[0]);
+        }
+        if (productArray.length >= 2 && productArray[1] != null) {
+            append(res, productArray[1]);
+        }
+        if (productArray.length >= 3 && productArray[2] != null) {
+            append(res, productArray[2]);
+        }
+        return res;
+    }
+    public LinkedList<Product> commonReviewedAbove4(int c1, int c2) {
+        LinkedList<Product> res = new LinkedList<Product>();
+        if (allTheProducts.empty()) return res;
+        allTheProducts.findFirst();
+        Product p;
+        while (!allTheProducts.last()) {
+            p = allTheProducts.retrieve();
+            if (p != null) {
+                if (p.hasReviewFrom(c1)) {
+                    if (p.hasReviewFrom(c2)) {
+                        if (p.calculateAverageRating() > 4.0) append(res, p);
+                    }
+                }
+            }
+            allTheProducts.findNext();
+        }
+        p = allTheProducts.retrieve();
+        if (p != null) {
+            if (p.hasReviewFrom(c1) && p.hasReviewFrom(c2) && p.calculateAverageRating() > 4.0) {
+                append(res, p);
+            }
+        }
+        return res;
+    }
+    public LinkedList<Review> collectReviewsByCustomer(int customerId) {
+        LinkedList<Review> out = new LinkedList<Review>();
+        if (allTheProducts.empty()) return out;
+
+        allTheProducts.findFirst();
+        Product p;
+        while (!allTheProducts.last()) {
+            p = allTheProducts.retrieve();
+            if (p != null) {
+                List<Review> revs = p.getReviews();
+                if (!revs.empty()) {
+                    revs.findFirst();
+                    Review rv;
+                    while (!revs.last()) {
+                        rv = revs.retrieve();
+                        if (rv != null) {
+                            if (rv.getCustomerId() == customerId) append(out, rv);
+                        }
+                        revs.findNext();
+                    }
+                    rv = revs.retrieve();
+                    if (rv != null) {
+                        if (rv.getCustomerId() == customerId) append(out, rv);
+                    }
+                }
+            }
+            allTheProducts.findNext();
+        }
+        p = allTheProducts.retrieve();
+        if (p != null) {
+            List<Review> revs = p.getReviews();
+            if (!revs.empty()) {
+                revs.findFirst();
+                Review rv;
+                while (!revs.last()) {
+                    rv = revs.retrieve();
+                    if (rv != null) {
+                        if (rv.getCustomerId() == customerId) append(out, rv);
+                    }
+                    revs.findNext();
+                }
+                rv = revs.retrieve();
+                if (rv != null) {
+                    if (rv.getCustomerId() == customerId) append(out, rv);
+                }
+            }
+        }
+        return out;
+    }
+
 }
