@@ -1,5 +1,3 @@
-package Test;
-
 public class ProductOperations {
 	public static List<Product> allTheProducts = new LinkedList<Product>();
 
