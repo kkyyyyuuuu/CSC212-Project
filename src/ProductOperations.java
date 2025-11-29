@@ -1,6 +1,7 @@
 public class ProductOperations {
 	public static List<Product> allTheProducts = new LinkedList<Product>();
-
+	public static BST<Product> productsById = new BST<Product>();
+	
     private static <T> void append(List<T> l, T e) {  
         if (l.full())
         	return;
@@ -13,47 +14,81 @@ public class ProductOperations {
         	l.findNext();
         l.insert(e);
     }  
+    
     public static void addProduct(Product p) {
         if (p == null) 
         	return;
+     // أول شي: BST by id (لو موجود نفس id لا تكرر)
+        if (!productsById.insert(p.getProductId(), p)) return;
+
+        
+        
         append(allTheProducts, p);
     }
     public static boolean removeById(int id) {
-        if (allTheProducts.empty()) 
-        	return false;
+        Product p = productsById.search(id);
+        if (p == null) return false;
+
+        productsById.delete(id);
+
+        // remove from list (نفس كودك القديم)
+        if (allTheProducts.empty()) return false;
         allTheProducts.findFirst();
-        Product cur;
         while (!allTheProducts.last()) {
-            cur = allTheProducts.retrieve();
-            if (cur != null) {       
-            	if(cur.getProductId() == id) {
-            		allTheProducts.remove(); 
-            		return true;
-            	}
+            Product cur = allTheProducts.retrieve();
+            if (cur != null && cur.getProductId() == id) {
+                allTheProducts.remove();
+                return true;
             }
             allTheProducts.findNext();
         }
-        cur = allTheProducts.retrieve();
-        if (cur != null) {              
-        	if(cur.getProductId() == id)
-        		allTheProducts.remove(); 
-        		return true;
-        	}
+        Product cur = allTheProducts.retrieve();
+        if (cur != null && cur.getProductId() == id) {
+            allTheProducts.remove();
+            return true;
+        }
         return false;
     }
+    public static LinkedList<Product> productsInPriceRange(double minPrice, double maxPrice) {
+        LinkedList<Product> res = new LinkedList<Product>();
+        if (allTheProducts.empty()) return res;
+
+        if (minPrice > maxPrice) {
+            double t = minPrice; minPrice = maxPrice; maxPrice = t;
+        }
+
+        allTheProducts.findFirst();
+        while (!allTheProducts.last()) {
+            Product p = allTheProducts.retrieve();
+            if (p != null && p.getPrice() >= minPrice && p.getPrice() <= maxPrice)
+                append(res, p);
+            allTheProducts.findNext();
+        }
+        Product p = allTheProducts.retrieve();
+        if (p != null && p.getPrice() >= minPrice && p.getPrice() <= maxPrice)
+            append(res, p);
+
+        return res;
+    }
+
+
     
     public boolean updateName(int id, String newName) {
         Product p = searchById(id);
-        if (p == null) return false;
+        if (p == null) 
+        	return false;
         p.setName(newName);
-        allTheProducts.update(p);
         return true;
     }
     public boolean updatePrice(int id, double newPrice) {
         Product p = searchById(id);
-        if (p == null) return false;
+        if (p == null)
+        	return false;
+        
+
         p.setPrice(newPrice);
-        allTheProducts.update(p);
+
+        
         return true;
     }
     public boolean updateStock(int id, int newStock) {
@@ -62,34 +97,14 @@ public class ProductOperations {
         	return false;
         int tmp = newStock - p.getStock();
         p.updateStock(tmp);
-        allTheProducts.update(p);
         return true;
     }   
     public static Product searchById(int id) {
-        if (allTheProducts.empty())
-        	return null;
-        Product cur;
-        allTheProducts.findFirst();
-        while (!allTheProducts.last()) {
-             cur = allTheProducts.retrieve();
-            if (cur != null) {
-            	if(cur.getProductId() == id) {
-            		return cur;
-            	}
-            }
-            allTheProducts.findNext();
-        }
-        cur = allTheProducts.retrieve();
-        if (cur != null) {
-            if (cur.getProductId() == id) {
-                return cur;
-            }
-        }
-        return null;
+        return productsById.search(id);
     }
     public static LinkedList<Product> searchByName(String name) {
         LinkedList<Product> res = new LinkedList<Product>();
-        if (allTheProducts.empty() | (name == null) | (name.length()==0))
+        if (allTheProducts.empty() || name == null || name.length() == 0)
         	return res;
         String nNInLowerCase = name.toLowerCase();
         Product cur;
@@ -142,7 +157,7 @@ public class ProductOperations {
     }
     
     
-    public LinkedList<Product> top3ByAverage() {
+    public static LinkedList<Product> top3ByAverage() {
         LinkedList<Product> res = new LinkedList<Product>();
         if (allTheProducts.empty()) {
             return res;
