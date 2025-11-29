@@ -14,6 +14,7 @@ public class Customer {
         this.ordersList        = new LinkedList<Order>();
         this.reviewsByCustomer = new LinkedList<Review>();
     }
+
     public void placeNewOrder(Order order) {
     	if (order == null) 
     		return;
@@ -27,6 +28,7 @@ public class Customer {
         	}
         ordersList.insert(order);
     }
+    
     public void addReview(Review review) {
         if(review==null) return; 
         if(reviewsByCustomer.empty()) {
@@ -37,8 +39,11 @@ public class Customer {
         while(!reviewsByCustomer.last()) {
         	reviewsByCustomer.findNext();
         }
-        reviewsByCustomer.insert(review);	
+        reviewsByCustomer.insert(review);
+        	
         }
+    
+
     public List<Order> viewOrderHistory() {
         return ordersList;
     }
