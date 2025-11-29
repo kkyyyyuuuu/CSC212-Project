@@ -1,5 +1,8 @@
+package Test;
+
 public class Product {
-	private int productId;
+
+    private int productId;
     private String name;
     private double price;
     private int stock;
@@ -129,4 +132,5 @@ public class Product {
 		return "Product [productId=" + productId + ", name=" + name + ", price=" + price + ", stock=" + stock
 				+ ", reviews=" + reviews + "]";
 	}
-     }
+     
+}
