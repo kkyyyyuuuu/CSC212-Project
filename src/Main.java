@@ -1,253 +1,235 @@
+package Test;
+
+import java.util.Scanner;
+
 public class Main {
-    
-    private static final int MAX_LIST_SIZE = 1000;
 
-    public static Customer searchCustomerByID(ArrayList<Customer> customers, int id) {
-        if (customers.empty()) return null;
-        
-        customers.findFirst();
+    private static Scanner in = new Scanner(System.in);
+
+    public static void main(String[] args) {
+
+        // 1) Load data (CSV)
+        CSVLoader.loadAll();
+
         while (true) {
-            if (customers.retrieve().getCustomerId() == id) {
-                return customers.retrieve();
-            }
-            if (customers.last()) break;
-            customers.findNext();
-        }
-        return null;
-    }
+            printMenu();
+            int choice = readInt("Choose: ");
 
-    public static Product searchProductByID(ArrayList<Product> products, int id) {
-        if (products.empty()) return null;
-        
-        products.findFirst();
-        while (true) {
-            if (products.retrieve().getProductId() == id) {
-                return products.retrieve();
+            if (choice == 0) {
+                CSVLoader.saveProducts();
+                System.out.println("Saved. Bye!");
+                break;
             }
-            if (products.last()) break;
-            products.findNext();
-        }
-        return null;
-    }
 
-    public static void readDataFromCSV(ArrayList<Product> products, ArrayList<Customer> customers, ArrayList<Order> orders) {
-        
-        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/prodcuts.csv"))) {
-            br.readLine(); 
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(","); 
-                products.insert(new Product(
-                    java.lang.Integer.parseInt(values[0]),
-                    values[1],
-                    java.lang.Double.parseDouble(values[2]),
-                    java.lang.Integer.parseInt(values[3])
-                ));
-            }
-        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading products: " + e.getMessage()); }
 
-        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/customers.csv"))) {
-            br.readLine(); 
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                customers.insert(new Customer(
-                    java.lang.Integer.parseInt(values[0]),
-                    values[1],
-                    values[2]
-                ));
-            }
-        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading customers: " + e.getMessage()); }
+            switch (choice) {
 
-        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/reviews.csv"))) {
-            br.readLine(); 
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                Review newReview = new Review(
-                    java.lang.Integer.parseInt(values[0]),
-                    java.lang.Integer.parseInt(values[1]),
-                    java.lang.Integer.parseInt(values[2]),
-                    java.lang.Integer.parseInt(values[3]),
-                    values[4].replace("\"", "")
-                );
-                
-                Product product = searchProductByID(products, newReview.getProductId());
-                Customer customer = searchCustomerByID(customers, newReview.getCustomerId());
-                
-                if (product != null) { product.addReview(newReview); }
-                if (customer != null) { customer.addReview(newReview); }
-            }
-        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading reviews: " + e.getMessage()); }
-        
-        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("data/orders.csv"))) {
-            br.readLine(); 
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(","); 
-                
-                String[] pIdsStr = values[2].replace("\"", "").split(";");
-                ArrayList<Integer> productIds = new ArrayList<>(pIdsStr.length);
-                for (String idStr : pIdsStr) {
-                    productIds.insert(java.lang.Integer.parseInt(idStr));
+                // Basic requirements checks
+                case 1: { // Search Product by ID (BST)
+                    int id = readInt("Product ID: ");
+                    Product p = ProductOperations.searchById(id);
+                    if (p == null) System.out.println("Not found.");
+                    else System.out.println(p);
+                    break;
                 }
 
-                Order newOrder = new Order(
-                    java.lang.Integer.parseInt(values[0]),
-                    java.lang.Integer.parseInt(values[1]),
-                    productIds,
-                    java.lang.Double.parseDouble(values[3]),
-                    values[4],
-                    values[5]
-                );
-                
-                orders.insert(newOrder);
+                case 2: {
+                    int id = readInt("New Product ID: ");
+                    String name = readLine("Name: ");
+                    double price = readDouble("Price: ");
+                    int stock = readInt("Stock: ");
 
-                Customer customer = searchCustomerByID(customers, newOrder.getCustomerReference());
-                if (customer != null) { customer.placeNewOrder(newOrder); }
-            }
-        } catch (java.io.IOException e) { java.lang.System.err.println("Error reading orders: " + e.getMessage()); }
-    }
-    
-    private static class ProductRating {
-        Product product;
-        double averageRating;
-        
-        public ProductRating(Product p, double avg) {
-            this.product = p;
-            this.averageRating = avg;
-        }
-        public Product getProduct() { return product; }
-        public double getAverageRating() { return averageRating; }
-    }
-    
-    public static ArrayList<Product> getTop3ProductsByRating(ArrayList<Product> products) {
-        if (products.empty()) return new ArrayList<>(3);
-        
-        ArrayList<ProductRating> ratings = new ArrayList<>(products.size);
-        
-        products.findFirst();
-        while (true) {
-            Product p = products.retrieve();
-            double avg = p.calculateAverageRating();
-            ratings.insert(new ProductRating(p, avg));
-            if (products.last()) break;
-            products.findNext();
-        }
-        
-        ArrayList<Product> top3 = new ArrayList<>(3);
-        
-        ratings.findFirst();
-        for (int i = 0; i < 3 && i < ratings.size; i++) {
-            top3.insert(ratings.retrieve().getProduct());
-            if (ratings.last()) break;
-            ratings.findNext();
-        }
-        
-        return top3;
-    }
-    
-    public static ArrayList<Order> getOrdersBetweenDates(ArrayList<Order> orders, String startDate, String endDate) {
-        ArrayList<Order> result = new ArrayList<>(orders.size);
-        
-        if (orders.empty()) return result;
-        
-        orders.findFirst();
-        while (true) {
-            Order order = orders.retrieve();
-            String orderDate = order.getOrderDate();
-            
-            if (orderDate.compareTo(startDate) >= 0 && orderDate.compareTo(endDate) <= 0) {
-                result.insert(order);
-            }
-            if (orders.last()) break;
-            orders.findNext();
-        }
-        return result;
-    }
-    
-    private static boolean containsProductId(ArrayList<Integer> pIds, int id) {
-        if (pIds.empty()) return false;
-        pIds.findFirst();
-        while (true) {
-            if (pIds.retrieve() == id) return true;
-            if (pIds.last()) break;
-            pIds.findNext();
-        }
-        return false;
-    }
-
-    private static ArrayList<Integer> extractUniqueProductIds(DoubleLinkedList<Review> reviews) {
-        ArrayList<Integer> uniqueIds = new ArrayList<>(reviews.getSize());
-        
-        if (reviews.empty()) return uniqueIds;
-        
-        reviews.findFirst();
-        while (true) {
-            int pid = reviews.retrieve().getProductId();
-            
-            boolean found = false;
-            if (!uniqueIds.empty()) {
-                uniqueIds.findFirst();
-                while (true) {
-                    if (uniqueIds.retrieve() == pid) {
-                        found = true;
-                        break;
+                    boolean ok = ProductOperations.addProduct(new Product(id, name, price, stock));
+                    if (!ok) {
+                        System.out.println("Already exists (same ID).");
+                    } else {
+                        CSVLoader.saveProducts(); // يحفظ prodcuts.csv مباشرة
+                        System.out.println("Saved.");
                     }
-                    if (uniqueIds.last()) break;
-                    uniqueIds.findNext();
+                    break;
                 }
-            }
-            
-            if (!found) {
-                uniqueIds.insert(pid);
-            }
 
-            if (reviews.last()) break;
-            reviews.findNext();
+
+                case 3: {
+                    int id = readInt("Product ID: ");
+                    System.out.println("1) Update Name  2) Update Price  3) Update Stock");
+                    int t = readInt("Choose: ");
+                    ProductOperations ops = new ProductOperations();
+
+                    boolean ok = false;
+
+                    if (t == 1) {
+                        String newName = readLine("New name: ");
+                        ok = ops.updateName(id, newName);
+                    } else if (t == 2) {
+                        double newPrice = readDouble("New price: ");
+                        ok = ops.updatePrice(id, newPrice);
+                    } else if (t == 3) {
+                        int newStock = readInt("New stock: ");
+                        ok = ops.updateStock(id, newStock);
+                    }
+
+                    if (!ok) {
+                        System.out.println("Not found.");
+                    } else {
+                        CSVLoader.saveProducts();     // <<< هذا هو المهم
+                        System.out.println("Updated & Saved.");
+                    }
+                    break;
+                }
+
+                // Advanced Query #2
+                case 4: { // List products within price range (BST rangeQuery)
+                    double minP = readDouble("Min price: ");
+                    double maxP = readDouble("Max price: ");
+                    LinkedList<Product> list = ProductOperations.productsInPriceRange(minP, maxP);
+                    printListProducts(list);
+                    break;
+                }
+
+                // Advanced Query #4
+                case 5: { // List customers alphabetically (BST inOrderTraversal)
+                    LinkedList<Customer> list = CustomerOperations.customersSortedAlphabetically();
+                    printListCustomers(list);
+                    break;
+                }
+
+                // Requirement: Customer Order History
+                case 6: { // CustomerOrderHistory
+                    int cid = readInt("Customer ID: ");
+                    List<Order> hist = CustomerOperations.CustomerOrderHistory(cid);
+                    printListOrders(hist);
+                    break;
+                }
+
+                // Advanced Query #1
+                case 7: { // Orders between two dates (BST in-order/range)
+                    int y1 = readInt("From year: ");
+                    int m1 = readInt("From month: ");
+                    int d1 = readInt("From day: ");
+
+                    int y2 = readInt("To year: ");
+                    int m2 = readInt("To month: ");
+                    int d2 = readInt("To day: ");
+
+                    LinkedList<Order> list = OrderOperations.ordersBetween(y1, m1, d1, y2, m2, d2);
+                    printListOrders(list);
+                    break;
+                }
+
+                // Advanced Query #3
+                case 8: { // Top 3 highest rated (BST traversal logic)
+                    LinkedList<Product> top = ProductOperations.top3HighestRatedProducts();
+                    printListProducts(top);
+                    break;
+                }
+
+                // Advanced Query #5 (sorted by customerId)
+                case 9: {
+                    int pid = readInt("Product ID: ");
+                    LinkedList<Customer> list = ProductOperations.customersWhoReviewedProductByCustomerId(pid);
+                    printListCustomers(list);
+                    break;
+                }
+
+                // Advanced Query #5 (sorted by rating desc then customerId)
+                case 10: {
+                    int pid = readInt("Product ID: ");
+                    LinkedList<Customer> list = ProductOperations.customersWhoReviewedProductByRating(pid);
+                    printListCustomers(list);
+                    break;
+                }
+
+                default:
+                    System.out.println("Invalid choice.");
+            }
         }
-        return uniqueIds;
     }
-    
-    public static ArrayList<Product> getCommonHighRatedProducts(ArrayList<Product> products, ArrayList<Customer> customers, int customerId1, int customerId2) {
-        ArrayList<Product> commonProducts = new ArrayList<>(MAX_LIST_SIZE);
-        
-        Customer c1 = searchCustomerByID(customers, customerId1);
-        Customer c2 = searchCustomerByID(customers, customerId2);
-        if (c1 == null || c2 == null) return commonProducts;
 
-        ArrayList<Integer> pIds1 = extractUniqueProductIds(c1.getReviewsByCustomer());
-        ArrayList<Integer> pIds2 = extractUniqueProductIds(c2.getReviewsByCustomer());
+    private static void printMenu() {
+        System.out.println("\n==============================");
+        System.out.println("1) Search Product by ID");
+        System.out.println("2) Add Product");
+        System.out.println("3) Update Product (name/price/stock)");
+        System.out.println("4) Advanced #2: Products in Price Range");
+        System.out.println("5) Advanced #4: Customers Sorted Alphabetically");
+        System.out.println("6) Requirement: Customer Order History");
+        System.out.println("7) Advanced #1: Orders Between Two Dates");
+        System.out.println("8) Advanced #3: Top 3 Highest Rated Products");
+        System.out.println("9) Advanced #5: Customers Who Reviewed Product (by customerId)");
+        System.out.println("10) Advanced #5: Customers Who Reviewed Product (by rating desc)");
+        System.out.println("0) Save & Exit");
+        System.out.println("==============================");
+    }
 
-        if (pIds1.empty()) return commonProducts;
-        
-        pIds1.findFirst();
-        while (true) {
-            int pid1 = pIds1.retrieve();
-            
-            boolean isCommon = false;
-            if (!pIds2.empty()) {
-                pIds2.findFirst();
-                while(true) {
-                    if(pIds2.retrieve() == pid1) {
-                        isCommon = true;
-                        break;
-                    }
-                    if (pIds2.last()) break;
-                    pIds2.findNext();
-                }
-            }
-            
-            if (isCommon) { 
-                Product commonProduct = searchProductByID(products, pid1);
-                
-                if (commonProduct != null) {
-                    if (commonProduct.calculateAverageRating() > 4.0) {
-                        commonProducts.insert(commonProduct);
-                    }
-                }
-            }
-            
-            if (pIds1.last()) break;
-            pIds1.findNext();
+    // --------- printing helpers (compatible with your List/LinkedList) ---------
+    private static void printListProducts(List<Product> l) {
+        if (l == null || l.empty()) {
+            System.out.println("No results.");
+            return;
         }
+        l.findFirst();
+        while (true) {
+            Product p = l.retrieve();
+            if (p != null) System.out.println(p);
+            if (l.last()) break;
+            l.findNext();
+        }
+    }
+
+    private static void printListCustomers(List<Customer> l) {
+        if (l == null || l.empty()) {
+            System.out.println("No results.");
+            return;
+        }
+        l.findFirst();
+        while (true) {
+            Customer c = l.retrieve();
+            if (c != null) System.out.println(c);
+            if (l.last()) break;
+            l.findNext();
+        }
+    }
+
+    private static void printListOrders(List<Order> l) {
+        if (l == null || l.empty()) {
+            System.out.println("No results.");
+            return;
+        }
+        l.findFirst();
+        while (true) {
+            Order o = l.retrieve();
+            if (o != null) System.out.println(o);
+            if (l.last()) break;
+            l.findNext();
+        }
+    }
+
+    // --------- input helpers (simple) ---------
+    private static int readInt(String msg) {
+        while (true) {
+            System.out.print(msg);
+            try {
+                return Integer.parseInt(in.nextLine().trim());
+            } catch (Exception e) {
+                System.out.println("Enter a valid integer.");
+            }
+        }
+    }
+
+    private static double readDouble(String msg) {
+        while (true) {
+            System.out.print(msg);
+            try {
+                return Double.parseDouble(in.nextLine().trim());
+            } catch (Exception e) {
+                System.out.println("Enter a valid number.");
+            }
+        }
+    }
+
+    private static String readLine(String msg) {
+        System.out.print(msg);
+        return in.nextLine();
+    }
+}
