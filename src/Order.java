@@ -1,5 +1,6 @@
 public class Order {
-    private int orderId;
+
+	private int orderId;
     private int customerId;
     private List<Product> products;  
     private double totalPrice;
