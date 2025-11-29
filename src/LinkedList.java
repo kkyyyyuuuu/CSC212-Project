@@ -1,6 +1,5 @@
 public class LinkedList<T> implements List<T> {
-
-    private static class Node<E> {
+	private static class Node<E> {
         E data;
         Node<E> next;
         Node(E d){ data = d; }
