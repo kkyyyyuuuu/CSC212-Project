@@ -1,7 +1,7 @@
 package Test;
 
 public class CustomerOperations {
-	public static List<Customer> allTheCustomers = new LinkedList<Customer>();
+    public static List<Customer> allTheCustomers = new LinkedList<Customer>();
     public static BST<Customer> customersById = new BST<Customer>();
     public static BST<Customer> customersByName = new BST<Customer>();
 
@@ -22,14 +22,19 @@ public class CustomerOperations {
         String s = name.toLowerCase();
 
         int key = 0;
-        int limit = (s.length() < 6) ? s.length() : 6;  // أول 6 أحرف فقط
-        for (int i = 0; i < limit; i++) {
+        int taken = 0;
+
+        for (int i = 0; i < s.length() && taken < 3; i++) { // حطيناها ثلاث عشان الاوفر فلو, جربنا 6 ولا نفع
             char c = s.charAt(i);
-            int v = (c >= 'a' && c <= 'z') ? (c - 'a' + 1) : 0; // غير a-z = 0
+            if (c < 'a' || c > 'z') continue; // تجاهل المسافات والرموز
+            int v = (c - 'a' + 1);
             key = key * 27 + v;
+            taken++;
         }
         return key;
     }
+
+
 
     // يخلي المفتاح Unique لو تكرر الاسم
     private static int nameKeyUnique(Customer c) {
@@ -37,9 +42,7 @@ public class CustomerOperations {
     }
 
 
-
-   
-
+    
     public static void register(Customer c) {
         if (c == null) return;
 
@@ -69,4 +72,10 @@ public class CustomerOperations {
         c.placeNewOrder(order);
         return true;
     } 
+    public static List<Order> CustomerOrderHistory(int customerId) {
+        Customer c = searchById(customerId);
+        if (c == null) return new LinkedList<Order>();
+        return c.viewOrderHistory();
+    }
+
 }
